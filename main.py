@@ -18,7 +18,7 @@ from google.transit import gtfs_realtime_pb2
 # BEÁLLÍTÁSOK
 # =======================
 
-TOKEN = "MTM2NjA4NTM1ODU1ODY0NjM4Mg.Gf4neP.R_M3jwp_62RzK7dTZctN_hYwykDR0jT6CPazPc"
+TOKEN = os.getenv("TOKEN")
 
 MAV_BASE = "https://mavplusz.hu"
 JWT_URL = f"{MAV_BASE}/otp2-backend/otp/auth/get-jwt"
