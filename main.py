@@ -373,7 +373,7 @@ tracked_vonatok = [
     {
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2933",
-        "station_name": ["Kispest"],
+        "station_name": ["Kispest", "Gyál", "Gyál felső", "Pestszentimre", "Pestszentimre felső"],
         "weekdays": ["thursday"],
         "last_next_stop": None,
     }
