@@ -369,6 +369,13 @@ tracked_vonatok = [
         "station_name": ["Kispest"],
         "weekdays": ["monday"],
         "last_next_stop": None,
+    },
+    {
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2933",
+        "station_name": ["Kispest"],
+        "weekdays": ["thursday"],
+        "last_next_stop": None,
     }
 ]
 DEFAULT_LATE_THRESHOLD = 1 * 60  # 1 perc másodpercben
@@ -376,18 +383,15 @@ DEFAULT_LATE_THRESHOLD = 1 * 60  # 1 perc másodpercben
 def normalize_trip_number(trip_short):
     return "".join([c for c in str(trip_short or "") if c.isdigit()])
 
-def build_vonat_embed(vonatszam, vehicle, title_prefix="FIGYELEM A VONAT KÉSIK"):
-    next_stop = vehicle.get("nextStop", {}).get("stop", {}).get("name", "Ismeretlen")
-    delay_sec = vehicle.get("nextStop", {}).get("arrivalDelay")
-    delay_min = f"{int(delay_sec / 60)} perc" if delay_sec is not None else "—"
-
-    embed = discord.Embed(
-        title=f"{title_prefix} {vonatszam}",
-        color=0x00A0E3
-    )
-    embed.add_field(name="Késés mértéke", value=delay_min, inline=False)
-    embed.add_field(name="Következő állomás", value=next_stop, inline=False)
-    return embed
+TRACKED_STOPS = {
+    "kőbánya-kispest",
+    "kispest",
+    "pestszentimre felső",
+    "pestszentimre",
+    "gyál felső",
+    "gyál",
+    "felsőpakony",
+}
 
 @tasks.loop(seconds=30)
 async def logger_loop_mav():
@@ -468,23 +472,24 @@ async def vonat_watch_loop():
         if station_name_norm is not None:
             station_match = any(name in next_stop_norm for name in station_name_norm)
 
+        if not any(stop in next_stop_norm for stop in TRACKED_STOPS):
+            continue
+
         should_send = False
-        title_prefix = "KÖVETKEZŐ ÁLLOMÁS VÁLTOZOTT"
+        message_text = None
 
         if is_late:
+            delay_min = int(delay_sec / 60)
+            message_text = f"A vonat késik {delay_min} percet"
             should_send = True
-            title_prefix = "FIGYELEM A VONAT KÉSIK"
-
-        if station_match and tracker.get("last_next_stop") != next_stop:
+        elif station_match and tracker.get("last_next_stop") != next_stop:
+            message_text = f"A következő megálló {next_stop}"
             should_send = True
-            if not is_late:
-                title_prefix = "KÖVETKEZŐ ÁLLOMÁS VÁLTOZOTT"
 
         tracker["last_next_stop"] = next_stop
 
-        if should_send:
-            embed = build_vonat_embed(train_number, vehicle, title_prefix=title_prefix)
-            await channel.send(embed=embed)
+        if should_send and message_text:
+            await channel.send(message_text)
 
 @bot.command()
 async def vonat(ctx, vonatszam_keres: str, *, station_name: str = None):
