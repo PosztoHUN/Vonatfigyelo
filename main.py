@@ -480,10 +480,10 @@ async def vonat_watch_loop():
 
         if is_late:
             delay_min = int(delay_sec / 60)
-            message_text = f"A vonat késik {delay_min} percet"
+            message_text = f"A vonat késik {delay_min} percet ({train_number})"
             should_send = True
         elif station_match and tracker.get("last_next_stop") != next_stop:
-            message_text = f"A következő megálló {next_stop}"
+            message_text = f"A következő megálló {next_stop} ({train_number})"
             should_send = True
 
         tracker["last_next_stop"] = next_stop
