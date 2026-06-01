@@ -358,7 +358,14 @@ tracked_vonatok = [
     },
     {
         "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2979",
+        "train_number": "2917",
+        "station_name": ["Gyál", "Gyál felső"],
+        "weekdays": ["monday"],
+        "last_next_stop": None,
+    },
+    {
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2937",
         "station_name": ["Gyál", "Gyál felső"],
         "weekdays": ["monday"],
         "last_next_stop": None,
