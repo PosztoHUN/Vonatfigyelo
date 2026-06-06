@@ -248,11 +248,26 @@ CAR_IMAGE_INDEX = _load_image_index()
 
 IMAGE_OVERRIDES = {
     "2911": [
+        "416-m-a.png",
+        "416-m-a.png",
+    ],
+    "2949": [
         "418-a.png",
         "Bhv-2005.1-b.png",
         "Bhv-2005.1-b.png",
         "Bhv-2005.1-b.png",
         "BDbt-8007-3-a.png",
+    ],
+    "2916": [
+        "416-m-a.png",
+        "416-m-a.png",
+    ],
+    "2917": [
+        "416-m-a.png",
+    ],
+    "2926": [
+        "416-m-a.png",
+        "416-m-a.png",
     ],
 }
 
