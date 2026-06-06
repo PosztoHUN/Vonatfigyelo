@@ -11,7 +11,12 @@ import zipfile
 import asyncio
 import requests
 import re
-from PIL import Image
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    Image = None
+    PIL_AVAILABLE = False
 from datetime import UTC, datetime, timedelta
 from collections import defaultdict
 from google.transit import gtfs_realtime_pb2
@@ -282,6 +287,9 @@ def _find_car_image_paths(vehicle_data: dict) -> list[str]:
 
 
 def _compose_trainset_image(image_paths: list[str], filename: str) -> discord.File:
+    if not PIL_AVAILABLE:
+        raise RuntimeError("Pillow is required to compose trainset images. Install Pillow in your container.")
+
     images = []
     for path in image_paths:
         try:
@@ -623,10 +631,21 @@ async def kocsik(ctx, vonatszam_keres: str = None):
                     ),
                     color=0x00A0E3,
                 )
-                image_file = _compose_trainset_image(fallback_car_paths, filename)
-                embed.set_image(url=f"attachment://{filename}")
-                await ctx.send(embed=embed, file=image_file)
-                return
+                image_file = None
+                if PIL_AVAILABLE:
+                    try:
+                        image_file = _compose_trainset_image(fallback_car_paths, filename)
+                        embed.set_image(url=f"attachment://{filename}")
+                        await ctx.send(embed=embed, file=image_file)
+                        return
+                    except Exception:
+                        image_file = None
+
+                files = [discord.File(path, filename=os.path.basename(path)) for path in fallback_car_paths]
+                if files:
+                    embed.set_image(url=f"attachment://{files[0].filename}")
+                    await ctx.send(embed=embed, files=files)
+                    return
         await ctx.send("Nincs aktív vonat, amelyhez kocsikép elérhető vagy nem található a megadott vonatszám.")
         return
 
@@ -659,9 +678,23 @@ async def kocsik(ctx, vonatszam_keres: str = None):
 
         if car_image_paths:
             filename = f"trainset_{vonatszam}.png"
-            image_file = _compose_trainset_image(car_image_paths, filename)
-            embed.set_image(url=f"attachment://{filename}")
-            await ctx.send(embed=embed, file=image_file)
+            image_file = None
+            if PIL_AVAILABLE:
+                try:
+                    image_file = _compose_trainset_image(car_image_paths, filename)
+                except Exception:
+                    image_file = None
+
+            if image_file:
+                embed.set_image(url=f"attachment://{filename}")
+                await ctx.send(embed=embed, file=image_file)
+            else:
+                files = [discord.File(path, filename=os.path.basename(path)) for path in car_image_paths]
+                if files:
+                    embed.set_image(url=f"attachment://{files[0].filename}")
+                    await ctx.send(embed=embed, files=files)
+                else:
+                    await ctx.send(embed=embed)
         else:
             await ctx.send(embed=embed)
 
