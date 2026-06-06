@@ -319,6 +319,51 @@ def _compose_trainset_image(image_paths: list[str], filename: str) -> discord.Fi
     return discord.File(output, filename=filename)
 
 
+def _build_train_notification_embed(train_number: str, vehicle: dict, message_text: str) -> discord.Embed:
+    next_stop = vehicle.get("nextStop", {}).get("stop", {}).get("name", "Ismeretlen")
+    dest = vehicle.get("tripHeadsign") or "Ismeretlen"
+    speed = round(vehicle.get("speed") or 0.0, 1)
+    delay_sec = vehicle.get("nextStop", {}).get("arrivalDelay")
+    delay_text = f"{int(delay_sec / 60)} perc" if delay_sec is not None else "—"
+
+    embed = discord.Embed(
+        title=message_text,
+        color=0x00A0E3
+    )
+    embed.description = (
+        f"Vonatszám: {train_number}\n"
+        f"Cél: {dest}\n"
+        f"Következő állomás: {next_stop}\n"
+        f"Sebesség: {speed} km/h\n"
+        f"Késés: {delay_text}"
+    )
+    return embed
+
+
+async def _send_train_notification(channel, train_number: str, vehicle: dict, message_text: str):
+    car_image_paths = _find_car_image_paths(vehicle)
+    embed = _build_train_notification_embed(train_number, vehicle, message_text)
+
+    if car_image_paths:
+        filename = f"trainset_{train_number}.png"
+        if PIL_AVAILABLE:
+            try:
+                image_file = _compose_trainset_image(car_image_paths, filename)
+                embed.set_image(url=f"attachment://{filename}")
+                await channel.send(embed=embed, file=image_file)
+                return
+            except Exception:
+                pass
+
+        files = [discord.File(path, filename=os.path.basename(path)) for path in car_image_paths]
+        if files:
+            embed.set_image(url=f"attachment://{files[0].filename}")
+            await channel.send(embed=embed, files=files)
+            return
+
+    await channel.send(embed=embed)
+
+
 def chunk_embeds(title_base, entries, color=0x003200, max_fields=20):
     embeds = []
     embed = discord.Embed(title=title_base, color=color)
@@ -591,7 +636,7 @@ async def vonat_watch_loop():
         tracker["last_next_stop"] = next_stop
 
         if should_send and message_text:
-            await channel.send(message_text)
+            await _send_train_notification(channel, train_number, vehicle, message_text)
 
 @bot.command(name="kocsik")
 async def kocsik(ctx, vonatszam_keres: str = None):
