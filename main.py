@@ -241,12 +241,17 @@ def _load_image_index():
 CAR_IMAGE_INDEX = _load_image_index()
 
 IMAGE_OVERRIDES = {
-    "2911": "416-m-a.png",
+    "2911": [
+        "418-a.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.1-b.png",
+        "BDbt-8007-3-a.png",
+    ],
 }
 
 
-def _find_car_image_path(vehicle_data: dict) -> str | None:
-    candidates = []
+def _find_car_image_paths(vehicle_data: dict) -> list[str]:
     trip_short = str(vehicle_data.get("tripShortName") or "")
     vehicle_model = str(vehicle_data.get("vehicleModel") or "")
     uic_code = str(vehicle_data.get("uicCode") or "")
@@ -254,25 +259,25 @@ def _find_car_image_path(vehicle_data: dict) -> str | None:
     trip_number = "".join([c for c in trip_short if c.isdigit()])
 
     if trip_number in IMAGE_OVERRIDES:
-        override_filename = IMAGE_OVERRIDES[trip_number]
-        override_key = _normalize_image_name(os.path.splitext(override_filename)[0])
-        if override_key in CAR_IMAGE_INDEX:
-            return CAR_IMAGE_INDEX[override_key]
+        override_values = IMAGE_OVERRIDES[trip_number]
+        if isinstance(override_values, str):
+            override_values = [override_values]
+        paths = []
+        for filename in override_values:
+            key = _normalize_image_name(os.path.splitext(filename)[0])
+            path = CAR_IMAGE_INDEX.get(key)
+            if path:
+                paths.append(path)
+        return paths
 
-    candidates.append(trip_short)
-    candidates.append(trip_number)
-    candidates.append(vehicle_model)
-    candidates.append(uic_code)
-    candidates.append(vehicle_id)
-    candidates.append("default")
-
+    candidates = [trip_short, trip_number, vehicle_model, uic_code, vehicle_id, "default"]
     for candidate in candidates:
         key = _normalize_image_name(candidate)
         if not key:
             continue
         if key in CAR_IMAGE_INDEX:
-            return CAR_IMAGE_INDEX[key]
-    return None
+            return [CAR_IMAGE_INDEX[key]]
+    return []
 
 
 def chunk_embeds(title_base, entries, color=0x003200, max_fields=20):
@@ -570,24 +575,29 @@ async def kocsik(ctx, vonatszam_keres: str = None):
 
     if not matches:
         if vonatszam_keres:
-            fallback_image_path = _find_car_image_path({
+            fallback_car_paths = _find_car_image_paths({
                 "tripShortName": vonatszam_keres,
                 "vehicleModel": vonatszam_keres,
                 "uicCode": vonatszam_keres,
                 "vehicleId": vonatszam_keres,
             })
-            if fallback_image_path and os.path.isfile(fallback_image_path):
-                filename = os.path.basename(fallback_image_path)
+            if fallback_car_paths:
+                planned_cars = [os.path.basename(p) for p in fallback_car_paths]
+                filename = f"0_{os.path.basename(fallback_car_paths[0])}"
                 embed = discord.Embed(
                     title=f"🚆 Tervezett kocsik: {vonatszam_keres}",
                     description=(
-                        "Nincs aktív jármű a lekérdezés idején, de a megadott vonatszámhoz tartozó tervezett kocsikép elérhető."
+                        "Nincs aktív jármű a lekérdezés idején, de a megadott vonatszámhoz tartozó tervezett kocsikép elérhető.\n"
+                        f"{ ' - '.join(planned_cars) }"
                     ),
                     color=0x00A0E3,
                 )
+                files = []
+                for idx, path in enumerate(fallback_car_paths):
+                    base = os.path.basename(path)
+                    files.append(discord.File(path, filename=f"{idx}_{base}"))
                 embed.set_image(url=f"attachment://{filename}")
-                file = discord.File(fallback_image_path, filename=filename)
-                await ctx.send(embed=embed, file=file)
+                await ctx.send(embed=embed, files=files)
                 return
         await ctx.send("Nincs aktív vonat, amelyhez kocsikép elérhető vagy nem található a megadott vonatszám.")
         return
@@ -598,14 +608,19 @@ async def kocsik(ctx, vonatszam_keres: str = None):
         vonatszam = normalize_trip_number(trip_short) or str(v.get("vehicleId") or "?")
         cel = v.get("tripHeadsign") or "Ismeretlen"
         vehicle_model = v.get("vehicleModel") or "Ismeretlen"
-        car_image_path = _find_car_image_path(v)
+        car_image_paths = _find_car_image_paths(v)
+        planned_cars = [os.path.basename(p) for p in car_image_paths]
+
+        if planned_cars:
+            planned_text = " - ".join(planned_cars)
+        else:
+            planned_text = "Nincs megfelelő PNG az img mappában."
 
         description = (
             f"**Vonatszám:** {vonatszam}\n"
             f"**Cél:** {cel}\n"
             f"**Járműmodell:** {vehicle_model}\n"
-            f"**Tervezett kocsisor:**\n"
-            f"{('Kép betöltés alatt...' if car_image_path else 'Nincs megfelelő PNG az img mappában.') }"
+            f"**Tervezett kocsisor:**\n{planned_text}"
         )
 
         embed = discord.Embed(
@@ -614,11 +629,14 @@ async def kocsik(ctx, vonatszam_keres: str = None):
             color=0x00A0E3
         )
 
-        if car_image_path and os.path.isfile(car_image_path):
-            filename = os.path.basename(car_image_path)
-            embed.set_image(url=f"attachment://{filename}")
-            file = discord.File(car_image_path, filename=filename)
-            await ctx.send(embed=embed, file=file)
+        if car_image_paths:
+            files = []
+            for idx, path in enumerate(car_image_paths):
+                base = os.path.basename(path)
+                filename = f"{idx}_{base}"
+                files.append(discord.File(path, filename=filename))
+            embed.set_image(url=f"attachment://0_{os.path.basename(car_image_paths[0])}")
+            await ctx.send(embed=embed, files=files)
         else:
             await ctx.send(embed=embed)
 
