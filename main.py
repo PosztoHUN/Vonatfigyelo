@@ -557,23 +557,45 @@ async def kocsik(ctx, vonatszam_keres: str = None):
     matches = []
     if vonatszam_keres:
         vonatszam_keres = vonatszam_keres.strip()
+        keresett_szam = normalize_trip_number(vonatszam_keres)
         for vid, data in all_vehicles.items():
             trip_short = str(data.get("tripShortName") or "")
-            vonatszam = "".join([c for c in trip_short if c.isdigit()])
-            if vonatszam == vonatszam_keres or str(vid) == vonatszam_keres:
+            vonatszam = normalize_trip_number(trip_short)
+            uic_szam = normalize_trip_number(data.get("uicCode") or "")
+            if vonatszam == keresett_szam or str(vid) == vonatszam_keres or uic_szam == keresett_szam:
                 matches.append({"vehicleId": vid, **data})
     else:
         for vid, data in all_vehicles.items():
             matches.append({"vehicleId": vid, **data})
 
     if not matches:
+        if vonatszam_keres:
+            fallback_image_path = _find_car_image_path({
+                "tripShortName": vonatszam_keres,
+                "vehicleModel": vonatszam_keres,
+                "uicCode": vonatszam_keres,
+                "vehicleId": vonatszam_keres,
+            })
+            if fallback_image_path and os.path.isfile(fallback_image_path):
+                filename = os.path.basename(fallback_image_path)
+                embed = discord.Embed(
+                    title=f"🚆 Tervezett kocsik: {vonatszam_keres}",
+                    description=(
+                        "Nincs aktív jármű a lekérdezés idején, de a megadott vonatszámhoz tartozó tervezett kocsikép elérhető."
+                    ),
+                    color=0x00A0E3,
+                )
+                embed.set_image(url=f"attachment://{filename}")
+                file = discord.File(fallback_image_path, filename=filename)
+                await ctx.send(embed=embed, file=file)
+                return
         await ctx.send("Nincs aktív vonat, amelyhez kocsikép elérhető vagy nem található a megadott vonatszám.")
         return
 
     sent_any = False
     for v in matches:
         trip_short = str(v.get("tripShortName") or "")
-        vonatszam = "".join([c for c in trip_short if c.isdigit()]) or str(v.get("vehicleId") or "?")
+        vonatszam = normalize_trip_number(trip_short) or str(v.get("vehicleId") or "?")
         cel = v.get("tripHeadsign") or "Ismeretlen"
         vehicle_model = v.get("vehicleModel") or "Ismeretlen"
         car_image_path = _find_car_image_path(v)
