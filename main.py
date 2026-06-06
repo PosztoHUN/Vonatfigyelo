@@ -10,6 +10,7 @@ import csv
 import zipfile
 import asyncio
 import requests
+import re
 from datetime import UTC, datetime, timedelta
 from collections import defaultdict
 from google.transit import gtfs_realtime_pb2
@@ -218,6 +219,62 @@ def fetch_txt_raw() -> str:
 # =======================
 # SEGÉDFÜGGVÉNYEK
 # =======================
+IMG_DIR = os.path.join(os.path.dirname(__file__), "img")
+
+def _normalize_image_name(name: str) -> str:
+    if not name:
+        return ""
+    sanitized = re.sub(r"[^a-z0-9]+", "_", name.lower())
+    return sanitized.strip("_")
+
+def _load_image_index():
+    images = {}
+    if not os.path.isdir(IMG_DIR):
+        return images
+    for filename in os.listdir(IMG_DIR):
+        if not filename.lower().endswith(".png"):
+            continue
+        key = _normalize_image_name(os.path.splitext(filename)[0])
+        images[key] = os.path.join(IMG_DIR, filename)
+    return images
+
+CAR_IMAGE_INDEX = _load_image_index()
+
+IMAGE_OVERRIDES = {
+    "2911": "416-m-a.png",
+}
+
+
+def _find_car_image_path(vehicle_data: dict) -> str | None:
+    candidates = []
+    trip_short = str(vehicle_data.get("tripShortName") or "")
+    vehicle_model = str(vehicle_data.get("vehicleModel") or "")
+    uic_code = str(vehicle_data.get("uicCode") or "")
+    vehicle_id = str(vehicle_data.get("vehicleId") or "")
+    trip_number = "".join([c for c in trip_short if c.isdigit()])
+
+    if trip_number in IMAGE_OVERRIDES:
+        override_filename = IMAGE_OVERRIDES[trip_number]
+        override_key = _normalize_image_name(os.path.splitext(override_filename)[0])
+        if override_key in CAR_IMAGE_INDEX:
+            return CAR_IMAGE_INDEX[override_key]
+
+    candidates.append(trip_short)
+    candidates.append(trip_number)
+    candidates.append(vehicle_model)
+    candidates.append(uic_code)
+    candidates.append(vehicle_id)
+    candidates.append("default")
+
+    for candidate in candidates:
+        key = _normalize_image_name(candidate)
+        if not key:
+            continue
+        if key in CAR_IMAGE_INDEX:
+            return CAR_IMAGE_INDEX[key]
+    return None
+
+
 def chunk_embeds(title_base, entries, color=0x003200, max_fields=20):
     embeds = []
     embed = discord.Embed(title=title_base, color=color)
@@ -369,6 +426,13 @@ tracked_vonatok = [
         "station_name": ["Kispest"],
         "weekdays": ["monday"],
         "last_next_stop": None,
+    },
+    {
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2911",
+        "station_name": ["Kispest", "Ócsa", "Gyál", "Gyál felső", "Felsőpakony"],
+        "weekdays": ["saturday"],
+        "last_next_stop": None,
     }
 ]
 DEFAULT_LATE_THRESHOLD = 1 * 60  # 1 perc másodpercben
@@ -483,6 +547,63 @@ async def vonat_watch_loop():
 
         if should_send and message_text:
             await channel.send(message_text)
+
+@bot.command(name="kocsik")
+async def kocsik(ctx, vonatszam_keres: str = None):
+    """Megjeleníti a tervezett kocsisort aktív vonatokhoz, ha a megfelelő PNG elérhető az img mappában."""
+    all_vehicles = await fetch_mav_vehicles()
+
+    matches = []
+    if vonatszam_keres:
+        vonatszam_keres = vonatszam_keres.strip()
+        for vid, data in all_vehicles.items():
+            trip_short = str(data.get("tripShortName") or "")
+            vonatszam = "".join([c for c in trip_short if c.isdigit()])
+            if vonatszam == vonatszam_keres or str(vid) == vonatszam_keres:
+                matches.append({"vehicleId": vid, **data})
+    else:
+        for vid, data in all_vehicles.items():
+            matches.append({"vehicleId": vid, **data})
+
+    if not matches:
+        await ctx.send("Nincs aktív vonat, amelyhez kocsikép elérhető vagy nem található a megadott vonatszám.")
+        return
+
+    sent_any = False
+    for v in matches:
+        trip_short = str(v.get("tripShortName") or "")
+        vonatszam = "".join([c for c in trip_short if c.isdigit()]) or str(v.get("vehicleId") or "?")
+        cel = v.get("tripHeadsign") or "Ismeretlen"
+        vehicle_model = v.get("vehicleModel") or "Ismeretlen"
+        car_image_path = _find_car_image_path(v)
+
+        description = (
+            f"**Vonatszám:** {vonatszam}\n"
+            f"**Cél:** {cel}\n"
+            f"**Járműmodell:** {vehicle_model}\n"
+            f"**Tervezett kocsisor:**\n"
+            f"{('Kép betöltés alatt...' if car_image_path else 'Nincs megfelelő PNG az img mappában.') }"
+        )
+
+        embed = discord.Embed(
+            title=f"🚆 Tervezett kocsik: {vonatszam}",
+            description=description,
+            color=0x00A0E3
+        )
+
+        if car_image_path and os.path.isfile(car_image_path):
+            filename = os.path.basename(car_image_path)
+            embed.set_image(url=f"attachment://{filename}")
+            file = discord.File(car_image_path, filename=filename)
+            await ctx.send(embed=embed, file=file)
+        else:
+            await ctx.send(embed=embed)
+
+        sent_any = True
+
+    if not sent_any:
+        await ctx.send("Nem sikerült elküldeni a tervezett kocsik embedet.")
+
 
 @bot.command()
 async def vonat(ctx, vonatszam_keres: str, *, station_name: str = None):
