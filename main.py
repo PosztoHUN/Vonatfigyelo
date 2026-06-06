@@ -448,6 +448,7 @@ TRACKED_STOPS = {
     "gyál felső",
     "gyál",
     "felsőpakony",
+    "ócsa",
 }
 
 @tasks.loop(seconds=30)
