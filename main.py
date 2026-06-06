@@ -11,6 +11,7 @@ import zipfile
 import asyncio
 import requests
 import re
+from PIL import Image
 from datetime import UTC, datetime, timedelta
 from collections import defaultdict
 from google.transit import gtfs_realtime_pb2
@@ -278,6 +279,36 @@ def _find_car_image_paths(vehicle_data: dict) -> list[str]:
         if key in CAR_IMAGE_INDEX:
             return [CAR_IMAGE_INDEX[key]]
     return []
+
+
+def _compose_trainset_image(image_paths: list[str], filename: str) -> discord.File:
+    images = []
+    for path in image_paths:
+        try:
+            img = Image.open(path).convert("RGBA")
+            images.append(img)
+        except Exception:
+            continue
+
+    if not images:
+        raise ValueError("No valid images to compose")
+
+    widths = [img.width for img in images]
+    heights = [img.height for img in images]
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    combined = Image.new("RGBA", (total_width, max_height), (0, 0, 0, 0))
+    x = 0
+    for img in images:
+        y = (max_height - img.height) // 2
+        combined.paste(img, (x, y), mask=img)
+        x += img.width
+
+    output = io.BytesIO()
+    combined.save(output, format="PNG")
+    output.seek(0)
+    return discord.File(output, filename=filename)
 
 
 def chunk_embeds(title_base, entries, color=0x003200, max_fields=20):
@@ -583,7 +614,7 @@ async def kocsik(ctx, vonatszam_keres: str = None):
             })
             if fallback_car_paths:
                 planned_cars = [os.path.basename(p) for p in fallback_car_paths]
-                filename = f"0_{os.path.basename(fallback_car_paths[0])}"
+                filename = f"trainset_{vonatszam_keres}.png"
                 embed = discord.Embed(
                     title=f"🚆 Tervezett kocsik: {vonatszam_keres}",
                     description=(
@@ -592,12 +623,9 @@ async def kocsik(ctx, vonatszam_keres: str = None):
                     ),
                     color=0x00A0E3,
                 )
-                files = []
-                for idx, path in enumerate(fallback_car_paths):
-                    base = os.path.basename(path)
-                    files.append(discord.File(path, filename=f"{idx}_{base}"))
+                image_file = _compose_trainset_image(fallback_car_paths, filename)
                 embed.set_image(url=f"attachment://{filename}")
-                await ctx.send(embed=embed, files=files)
+                await ctx.send(embed=embed, file=image_file)
                 return
         await ctx.send("Nincs aktív vonat, amelyhez kocsikép elérhető vagy nem található a megadott vonatszám.")
         return
@@ -630,13 +658,10 @@ async def kocsik(ctx, vonatszam_keres: str = None):
         )
 
         if car_image_paths:
-            files = []
-            for idx, path in enumerate(car_image_paths):
-                base = os.path.basename(path)
-                filename = f"{idx}_{base}"
-                files.append(discord.File(path, filename=filename))
-            embed.set_image(url=f"attachment://0_{os.path.basename(car_image_paths[0])}")
-            await ctx.send(embed=embed, files=files)
+            filename = f"trainset_{vonatszam}.png"
+            image_file = _compose_trainset_image(car_image_paths, filename)
+            embed.set_image(url=f"attachment://{filename}")
+            await ctx.send(embed=embed, file=image_file)
         else:
             await ctx.send(embed=embed)
 
