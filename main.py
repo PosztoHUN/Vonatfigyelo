@@ -247,10 +247,6 @@ def _load_image_index():
 CAR_IMAGE_INDEX = _load_image_index()
 
 IMAGE_OVERRIDES = {
-    "2911": [
-        "416-m-a.png",
-        "416-m-a.png",
-    ],
     "2949": [
         "418-a.png",
         "Bhv-2005.1-b.png",
@@ -529,13 +525,6 @@ tracked_vonatok = [
         "train_number": "2926",
         "station_name": ["Kispest"],
         "weekdays": ["monday"],
-        "last_next_stop": None,
-    },
-    {
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2911",
-        "station_name": ["Kispest", "Ócsa", "Gyál", "Gyál felső", "Felsőpakony"],
-        "weekdays": ["saturday"],
         "last_next_stop": None,
     }
 ]
