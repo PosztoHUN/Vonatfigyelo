@@ -524,14 +524,14 @@ TRACKER_CHANNEL_ID = 1506284877006377074
 
 tracked_vonatok = [
     #Gyál > Kispest
-    {
-        #6:39-7:03
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2969",
-        "station_name": ["Gyál", "Gyál felső"],
-        "weekdays": None,
-        "last_next_stop": None,
-    },
+    # {
+    #     #6:39-7:03
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2969",
+    #     "station_name": ["Gyál", "Gyál felső"],
+    #     "weekdays": None,
+    #     "last_next_stop": None,
+    # },
     {
         #7:00-7:20
         "channel_id": TRACKER_CHANNEL_ID,
@@ -540,14 +540,14 @@ tracked_vonatok = [
         "weekdays": ["tuesday", "wednesday", "thursday", "friday"],
         "last_next_stop": None,
     },
-    {
-        #7:39-8:03
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2979",
-        "station_name": ["Gyál", "Gyál felső"],
-        "weekdays": None,
-        "last_next_stop": None,
-    },
+    # {
+    #     #7:39-8:03
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2979",
+    #     "station_name": ["Gyál", "Gyál felső"],
+    #     "weekdays": None,
+    #     "last_next_stop": None,
+    # },
     {
         #8:00-8:20
         "channel_id": TRACKER_CHANNEL_ID,
@@ -558,14 +558,14 @@ tracked_vonatok = [
     },
 
     #Kispest > Gyál
-    {
-        #12:37-12:57
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2934",
-        "station_name": ["Kispest"],
-        "weekdays": None,
-        "last_next_stop": None,
-    },
+    # {
+    #     #12:37-12:57
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2934",
+    #     "station_name": ["Kispest"],
+    #     "weekdays": None,
+    #     "last_next_stop": None,
+    # },
     {
         #13:37-13:57
         "channel_id": TRACKER_CHANNEL_ID,
