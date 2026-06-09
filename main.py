@@ -878,7 +878,7 @@ async def helpvonatok(ctx):
     )
 
     embed.add_field(
-        name="2969",
+        name="2969 - **inaktív**",
         value="Gyál ➜ Kispest\nIndul: 06:39\nÉrkezik: 07:03",
         inline=False
     )
@@ -890,7 +890,7 @@ async def helpvonatok(ctx):
     )
 
     embed.add_field(
-        name="2979",
+        name="2979 - **inaktív**",
         value="Gyál ➜ Kispest\nIndul: 07:39\nÉrkezik: 08:03",
         inline=False
     )
