@@ -251,7 +251,7 @@ IMAGE_OVERRIDES = {
         "418-a.png",
         "Bhv-2005.1-b.png",
         "Bhv-2005.1-b.png",
-        "Bhv-2005.1-b.png",
+        "Bhv-2005.3-m-a.png",
         "BDbt-8007-3-a.png",
     ],
     "2916": [
@@ -263,6 +263,16 @@ IMAGE_OVERRIDES = {
     ],
     "2926": [
         "416-m-a.png",
+        "416-m-a.png",
+    ],
+    "2969": [
+        "418-a.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.3-m-a.png",
+        "Bhv-2005.3-m-a.png",
+        "BDbt-8007-3-a.png",
+    ],
+    "2979": [
         "416-m-a.png",
     ],
 }
@@ -499,7 +509,17 @@ active_mav_vehicles = {}
 TRACKER_CHANNEL_ID = 1506284877006377074
 
 tracked_vonatok = [
+    #Gyál > Kispest
     {
+        #6:39-7:03
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2969",
+        "station_name": ["Gyál", "Gyál felső"],
+        "weekdays": None,
+        "last_next_stop": None,
+    },
+    {
+        #7:00-7:20
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2949",
         "station_name": ["Gyál", "Gyál felső"],
@@ -507,24 +527,36 @@ tracked_vonatok = [
         "last_next_stop": None,
     },
     {
+        #7:39-8:03
         "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2916",
-        "station_name": ["Kispest"],
-        "weekdays": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        "train_number": "2979",
+        "station_name": ["Gyál", "Gyál felső"],
+        "weekdays": None,
         "last_next_stop": None,
     },
     {
+        #8:00-8:20
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2917",
         "station_name": ["Gyál", "Gyál felső"],
         "weekdays": ["monday"],
         "last_next_stop": None,
     },
+
+    #Kispest > Gyál
+    {
+        #
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2916",
+        "station_name": ["Kispest"],
+        "weekdays": ["tuesday", "wednesday", "thursday", "friday"],
+        "last_next_stop": None,
+    },
     {
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2926",
         "station_name": ["Kispest"],
-        "weekdays": ["saturday"],
+        "weekdays": ["monday"],
         "last_next_stop": None,
     }
 ]
@@ -836,6 +868,52 @@ async def vonat(ctx, vonatszam_keres: str, *, station_name: str = None):
 
     for e in embeds:
         await ctx.send(embed=e)
+
+
+@bot.command(name="helpvonatok")
+async def helpvonatok(ctx):
+    embed = discord.Embed(
+        title="🚆 Figyelt vonatok menetrendje",
+        color=0x00A0E3
+    )
+
+    embed.add_field(
+        name="2969",
+        value="Gyál ➜ Kispest\nIndul: 06:39\nÉrkezik: 07:03",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2949",
+        value="Gyál ➜ Kispest\nIndul: 07:00\nÉrkezik: 07:20",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2979",
+        value="Gyál ➜ Kispest\nIndul: 07:39\nÉrkezik: 08:03",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2917",
+        value="Gyál ➜ Kispest\nIndul: 08:00\nÉrkezik: 08:20",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2916",
+        value="Kispest ➜ Gyál\nIndul: 14:40\nÉrkezik: 15:00",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2926",
+        value="Kispest ➜ Gyál\nIndul: 14:40\nÉrkezik: 15:00",
+        inline=False
+    )
+
+    await ctx.send(embed=embed)
 
 # =======================
 # START
