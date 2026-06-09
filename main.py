@@ -247,13 +247,6 @@ def _load_image_index():
 CAR_IMAGE_INDEX = _load_image_index()
 
 IMAGE_OVERRIDES = {
-    "2949": [
-        "418-a.png",
-        "Bhv-2005.1-b.png",
-        "Bhv-2005.1-b.png",
-        "Bhv-2005.3-m-a.png",
-        "BDbt-8007-3-a.png",
-    ],
     "2916": [
         "416-m-a.png",
         "416-m-a.png",
@@ -264,6 +257,27 @@ IMAGE_OVERRIDES = {
     "2926": [
         "416-m-a.png",
         "416-m-a.png",
+    ],
+    "2934": [
+        "BDbt-8007-3-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.3-m-a.png",
+        "418-a.png",
+    ],
+    "2944": [
+        "BDbt-8007-3-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.3-m-a.png",
+        "418-a.png",
+    ],
+    "2949": [
+        "418-a.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.1-b.png",
+        "Bhv-2005.3-m-a.png",
+        "BDbt-8007-3-a.png",
     ],
     "2969": [
         "418-a.png",
@@ -545,14 +559,31 @@ tracked_vonatok = [
 
     #Kispest > Gyál
     {
-        #
+        #12:37-12:57
         "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2916",
+        "train_number": "2934",
         "station_name": ["Kispest"],
-        "weekdays": ["tuesday", "wednesday", "thursday", "friday"],
+        "weekdays": None,
         "last_next_stop": None,
     },
     {
+        #13:37-13:57
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2944",
+        "station_name": ["Kispest"],
+        "weekdays": ["friday"],
+        "last_next_stop": None,
+    },
+    {
+        #14:37-14:57
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2916",
+        "station_name": ["Kispest"],
+        "weekdays": ["tuesday", "wednesday", "thursday"],
+        "last_next_stop": None,
+    },
+    {
+        #15:37-15:57
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2926",
         "station_name": ["Kispest"],
@@ -902,14 +933,26 @@ async def helpvonatok(ctx):
     )
 
     embed.add_field(
+        name="2934 - **inaktív**",
+        value="Kispest ➜ Gyál\nIndul: 12:37\nÉrkezik: 12:57",
+        inline=False
+    )
+
+    embed.add_field(
+        name="2944",
+        value="Kispest ➜ Gyál\nIndul: 13:37\nÉrkezik: 13:57",
+        inline=False
+    )
+
+    embed.add_field(
         name="2916",
-        value="Kispest ➜ Gyál\nIndul: 14:40\nÉrkezik: 15:00",
+        value="Kispest ➜ Gyál\nIndul: 14:37\nÉrkezik: 14:57",
         inline=False
     )
 
     embed.add_field(
         name="2926",
-        value="Kispest ➜ Gyál\nIndul: 14:40\nÉrkezik: 15:00",
+        value="Kispest ➜ Gyál\nIndul: 15:37\nÉrkezik: 15:57",
         inline=False
     )
 
