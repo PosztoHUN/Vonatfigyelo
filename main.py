@@ -571,7 +571,7 @@ tracked_vonatok = [
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2944",
         "station_name": ["Kispest"],
-        "weekdays": ["friday"],
+        "weekdays": ["wednesday", "friday"],
         "last_next_stop": None,
     },
     {
