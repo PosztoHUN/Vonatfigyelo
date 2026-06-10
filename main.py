@@ -553,7 +553,7 @@ tracked_vonatok = [
         "channel_id": TRACKER_CHANNEL_ID,
         "train_number": "2917",
         "station_name": ["Gyál", "Gyál felső"],
-        "weekdays": ["monday"],
+        "weekdays": ["monday", "wednesday"],
         "last_next_stop": None,
     },
 
