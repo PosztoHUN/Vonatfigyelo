@@ -247,6 +247,9 @@ def _load_image_index():
 CAR_IMAGE_INDEX = _load_image_index()
 
 IMAGE_OVERRIDES = {
+    "2914": [
+        "416-m-a.png",
+    ],
     "2916": [
         "416-m-a.png",
         "416-m-a.png",
@@ -548,16 +551,24 @@ tracked_vonatok = [
     #     "weekdays": None,
     #     "last_next_stop": None,
     # },
-    {
-        #8:00-8:20
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2917",
-        "station_name": ["Gyál", "Gyál felső"],
-        "weekdays": ["monday", "wednesday"],
-        "last_next_stop": None,
-    },
+    # {
+    #     #8:00-8:20
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2917",
+    #     "station_name": ["Gyál", "Gyál felső"],
+    #     "weekdays": ["monday", "wednesday"],
+    #     "last_next_stop": None,
+    # },
 
     #Kispest > Gyál
+    {
+        #10:37-10:57
+        "channel_id": TRACKER_CHANNEL_ID,
+        "train_number": "2914",
+        "station_name": ["Kispest"],
+        "weekdays": ["wednesday", "friday"],
+        "last_next_stop": None,
+    },
     # {
     #     #12:37-12:57
     #     "channel_id": TRACKER_CHANNEL_ID,
@@ -566,30 +577,30 @@ tracked_vonatok = [
     #     "weekdays": None,
     #     "last_next_stop": None,
     # },
-    {
-        #13:37-13:57
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2944",
-        "station_name": ["Kispest"],
-        "weekdays": ["wednesday", "friday"],
-        "last_next_stop": None,
-    },
-    {
-        #14:37-14:57
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2916",
-        "station_name": ["Kispest"],
-        "weekdays": ["tuesday", "wednesday", "thursday"],
-        "last_next_stop": None,
-    },
-    {
-        #15:37-15:57
-        "channel_id": TRACKER_CHANNEL_ID,
-        "train_number": "2926",
-        "station_name": ["Kispest"],
-        "weekdays": ["monday"],
-        "last_next_stop": None,
-    }
+    # {
+    #     #13:37-13:57
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2944",
+    #     "station_name": ["Kispest"],
+    #     "weekdays": ["wednesday", "friday"],
+    #     "last_next_stop": None,
+    # },
+    # {
+    #     #14:37-14:57
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2916",
+    #     "station_name": ["Kispest"],
+    #     "weekdays": ["tuesday", "wednesday", "thursday"],
+    #     "last_next_stop": None,
+    # },
+    # {
+    #     #15:37-15:57
+    #     "channel_id": TRACKER_CHANNEL_ID,
+    #     "train_number": "2926",
+    #     "station_name": ["Kispest"],
+    #     "weekdays": ["monday"],
+    #     "last_next_stop": None,
+    # }
 ]
 DEFAULT_LATE_THRESHOLD = 1 * 60  # 1 perc másodpercben
 
